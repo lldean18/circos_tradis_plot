@@ -19,6 +19,7 @@ PROJECT=Klebsiella_pneumoniae
 ASSEMBLY=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.fa
 ANNOTATION=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.gff
 TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
+TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP008827_CP008827.1.insert_site_plot_combined.gz
 
 # setup wkdir
 cd /gpfs01/home/mbzlld/data/circos_tradis_plot
@@ -62,6 +63,7 @@ awk '{print $1, $4, $5}' OFS="\t" > genes_rev_strand.txt
 bedtools makewindows -g $ASSEMBLY.fai -w 20000 > windows_20kb.bed
 
 # convert the tradis insertion site output to bed format
+rm insertions_fwd_strand.bed insertions_rev_strand.bed
 zcat "$TRADIS" | awk '
 BEGIN {
     while ((getline < "'$ASSEMBLY.fai'") > 0) {
