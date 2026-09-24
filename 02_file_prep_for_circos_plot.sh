@@ -22,6 +22,12 @@ ASSEMBLY=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP009273.1.fa
 ANNOTATION=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP009273.1.gff
 TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
 
+PROJECT=Photorhabdus_khanii
+ASSEMBLY=/gpfs01/home/mbzlld/data/bryant/11d3a3246d_20251024_Bryant1L/assembly/323630L_Photorhabduskhanii_reordered.fasta
+ANNOTATION=/gpfs01/home/mbzlld/data/bryant/11d3a3246d_20251024_Bryant1L/my_assembly_edits/323630L_Photorhabduskhanii_for_fasta_rev_order.gff
+TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.combined_contig2thencontig1.insert_site_plot.gz
+
+
 # setup wkdir
 cd /gpfs01/home/mbzlld/data/circos_tradis_plot
 mkdir -p /gpfs01/home/mbzlld/data/circos_tradis_plot/$PROJECT
