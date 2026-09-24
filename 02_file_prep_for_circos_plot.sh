@@ -98,9 +98,26 @@ bedtools map -a windows_5kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0
 bedtools map -a windows_1kb.bed -b insertions_fwd_strand.bed -c 4 -o sum -null 0 > insertions_fwd_strand_1kb.bed
 bedtools map -a windows_1kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0 > insertions_rev_strand_1kb.bed
 
+##########################
+### PREP THE ORIC FILE ###
+##########################
+
+#awk '$3=="oriC" {
+#    name="oriC"
+#    if (match($9,/Name=[^;]+/)) {
+#        name=substr($9,RSTART+5,RLENGTH-5)
+#    }
+#    print $1, $4, $5, name
+#}' OFS="\t" "$ANNOTATION" > oriC.bed
+
+# or simpler
+
+#awk '$3=="oriC" {print $1, $4, $5}' OFS="\t" "$ANNOTATION" > oriC.txt
+
 #####################
 ### TO RUN CIRCOS ###
 #####################
+
 # make the circos.conf file stipulating how you want the plot to be then
 cp /gpfs01/home/mbzlld/github/circos_tradis_plot/circos.conf ./
 cp /gpfs01/home/mbzlld/github/circos_tradis_plot/ticks.conf ./
