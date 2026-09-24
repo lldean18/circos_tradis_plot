@@ -3,37 +3,37 @@
 # 23/9/26
 
 
-# I used this website to convert the .embl file to fasta: https://www.bioinformatics.org/sms2/embl_fasta.html
-# then I used this to convert embl file to fasta
-awk '
-/^ID   / {
-    id = $2
-    sub(/;/, "", id)
-    sv = $4
-    sub(/;/, "", sv)
-    print ">" id "." sv
-    inseq = 0
-}
-
-/^SQ   / {
-    inseq = 1
-    next
-}
-
-/^\/\// {
-    inseq = 0
-    next
-}
-
-inseq {
-    gsub(/[0-9 ]/, "")
-    print
-}
-' CP008827.1.embl > CP008827.1.fa
+## I used this website to convert the .embl file to fasta: https://www.bioinformatics.org/sms2/embl_fasta.html
+## but it didn't retain the contig names so I used this awk code instead:
+## then I used this to convert embl file to fasta
+#awk '
+#/^ID   / {
+#    id = $2
+#    sub(/;/, "", id)
+#    sv = $4
+#    sub(/;/, "", sv)
+#    print ">" id "." sv
+#    inseq = 0
+#}
+#
+#/^SQ   / {
+#    inseq = 1
+#    next
+#}
+#
+#/^\/\// {
+#    inseq = 0
+#    next
+#}
+#
+#inseq {
+#    gsub(/[0-9 ]/, "")
+#    print
+#}
+#' CP008827.1.embl > CP008827.1.fa
 
 # and this website to convert it to gff3: https://www.ebi.ac.uk/ena/gff3/converter/
-# but its out of order so sort it now
-perl /gpfs01/home/mbzlld/github/circos_tradis_plot/gff3sort.pl
+# but its out of order managed to get round that by sorting the downstream files
 
 # setup env
 srun --partition defq --cpus-per-task 4 --mem 20g --time 08:00:00 --pty bash
@@ -132,5 +132,5 @@ bedtools map -a windows_1kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0
 # in the dir with the circos.conf file run:
 conda activate circos
 circos
-
+conda deactivate
 
