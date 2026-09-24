@@ -118,7 +118,7 @@ bedtools map -a windows_1kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0
 
 # or simpler
 
-#awk '$3=="oriC" {print $1, $4, $5}' OFS="\t" "$ANNOTATION" > oriC.txt
+awk '$3=="oriC" {print $1, $4, $5, "oriC"}' OFS="\t" "$ANNOTATION" > oriC.txt
 
 #####################
 ### TO RUN CIRCOS ###
