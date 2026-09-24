@@ -4,8 +4,36 @@
 
 
 # I used this website to convert the .embl file to fasta: https://www.bioinformatics.org/sms2/embl_fasta.html
-# and this website to convert it to gff3: https://www.ebi.ac.uk/ena/gff3/converter/
+# then I used this to convert embl file to fasta
+awk '
+/^ID   / {
+    id = $2
+    sub(/;/, "", id)
+    sv = $4
+    sub(/;/, "", sv)
+    print ">" id "." sv
+    inseq = 0
+}
 
+/^SQ   / {
+    inseq = 1
+    next
+}
+
+/^\/\// {
+    inseq = 0
+    next
+}
+
+inseq {
+    gsub(/[0-9 ]/, "")
+    print
+}
+' CP008827.1.embl > CP008827.1.fa
+
+# and this website to convert it to gff3: https://www.ebi.ac.uk/ena/gff3/converter/
+# but its out of order so sort it now
+perl /gpfs01/home/mbzlld/github/circos_tradis_plot/gff3sort.pl
 
 # setup env
 srun --partition defq --cpus-per-task 4 --mem 20g --time 08:00:00 --pty bash
@@ -18,7 +46,7 @@ conda activate circos
 PROJECT=Klebsiella_pneumoniae
 ASSEMBLY=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.fa
 ANNOTATION=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.gff
-TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
+#TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
 TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP008827_CP008827.1.insert_site_plot_combined.gz
 
 # setup wkdir
@@ -46,21 +74,19 @@ awk '{print "chr - " $1 " " $1 " 0 " $2 " chr1"}' $ASSEMBLY.fai > karyotype.txt
 
 # convert annotation to circos format
 awk '$3=="CDS"' $ANNOTATION | awk '{print $1, $4, $5}' OFS="\t" > genes.txt
+sort -k1,1 -k2,2n genes.txt > genes.txt.tmp && mv genes.txt.tmp genes.txt
 
 # make separate annotation files for genes on fwd and rev strands (strand info is 7th column)
 # fwd strand
-awk '$3=="CDS" && $7=="+"' $ANNOTATION |
-awk '{print $1, $4, $5}' OFS="\t" > genes_fwd_strand.txt
+awk '$3=="CDS" && $7=="+"' $ANNOTATION | awk '{print $1, $4, $5}' OFS="\t" > genes_fwd_strand.txt
+sort -k1,1 -k2,2n genes_fwd_strand.txt > genes_fwd_strand.txt.tmp && mv genes_fwd_strand.txt.tmp genes_fwd_strand.txt
 # rev strand
-awk '$3=="CDS" && $7=="-"' $ANNOTATION |
-awk '{print $1, $4, $5}' OFS="\t" > genes_rev_strand.txt
+awk '$3=="CDS" && $7=="-"' $ANNOTATION | awk '{print $1, $4, $5}' OFS="\t" > genes_rev_strand.txt
+sort -k1,1 -k2,2n genes_rev_strand.txt > genes_rev_strand.txt.tmp && mv genes_rev_strand.txt.tmp genes_rev_strand.txt
 
 ################################
 ### PREP INSERTION SITE DATA ###
 ################################
-
-# make genome windows to count insertion sites in
-bedtools makewindows -g $ASSEMBLY.fai -w 20000 > windows_20kb.bed
 
 # convert the tradis insertion site output to bed format
 rm insertions_fwd_strand.bed insertions_rev_strand.bed
@@ -84,10 +110,20 @@ BEGIN {
 }
 ' OFS='\t'
 
+# make genome windows to count insertion sites in
+bedtools makewindows -g $ASSEMBLY.fai -w 20000 > windows_20kb.bed
+bedtools makewindows -g $ASSEMBLY.fai -w 5000 > windows_5kb.bed
+bedtools makewindows -g $ASSEMBLY.fai -w 1000 > windows_1kb.bed
+
 # count the insertions per window
 bedtools map -a windows_20kb.bed -b insertions_fwd_strand.bed -c 4 -o sum -null 0 > insertions_fwd_strand_20kb.bed
 bedtools map -a windows_20kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0 > insertions_rev_strand_20kb.bed
 
+bedtools map -a windows_5kb.bed -b insertions_fwd_strand.bed -c 4 -o sum -null 0 > insertions_fwd_strand_5kb.bed
+bedtools map -a windows_5kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0 > insertions_rev_strand_5kb.bed
+
+bedtools map -a windows_1kb.bed -b insertions_fwd_strand.bed -c 4 -o sum -null 0 > insertions_fwd_strand_1kb.bed
+bedtools map -a windows_1kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0 > insertions_rev_strand_1kb.bed
 
 #####################
 ### TO RUN CIRCOS ###
