@@ -15,8 +15,12 @@ conda activate circos
 PROJECT=Klebsiella_pneumoniae
 ASSEMBLY=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.fa
 ANNOTATION=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP008827.1.gff
-#TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
 TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP008827_CP008827.1.insert_site_plot_combined.gz
+
+PROJECT=Escherichia_coli
+ASSEMBLY=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP009273.1.fa
+ANNOTATION=/gpfs01/home/mbzlld/data/circos_tradis_plot/CP009273.1.gff
+TRADIS=/gpfs01/home/mbzlld/data/circos_tradis_plot/trimmed.fq.ENA_CP009273_CP009273.1.insert_site_plot.gz
 
 # setup wkdir
 cd /gpfs01/home/mbzlld/data/circos_tradis_plot
@@ -98,8 +102,11 @@ bedtools map -a windows_1kb.bed -b insertions_rev_strand.bed -c 4 -o sum -null 0
 ### TO RUN CIRCOS ###
 #####################
 # make the circos.conf file stipulating how you want the plot to be then
+cp /gpfs01/home/mbzlld/github/circos_tradis_plot/circos.conf ./
+cp /gpfs01/home/mbzlld/github/circos_tradis_plot/ticks.conf ./
 # in the dir with the circos.conf file run:
-conda activate circos
 circos
+
+# cleanup env
 conda deactivate
 
