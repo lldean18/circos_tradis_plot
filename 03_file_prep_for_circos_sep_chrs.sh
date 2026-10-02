@@ -17,6 +17,8 @@ PROJECT=Photorhabdus_khanii
 #ANNOTATION=/gpfs01/home/mbzlld/data/bryant/11d3a3246d_20251024_Bryant1L/my_assembly_edits/323630L_Photorhabduskhanii_for_fasta_rev_order.gff
 ASSEMBLY=/share/bryant_lab/reference_genomes/323630L_Photorhabduskhanii.fna
 ANNOTATION=/share/bryant_lab/reference_genomes/323630L_Photorhabduskhanii.gff
+# set the window size in kb for plotting insertion sites
+window_size=2
 
 # setup wkdir
 cd /gpfs01/home/mbzlld/data/circos_tradis_plot
@@ -74,30 +76,24 @@ do
 # reformat the tradis insertion site data to have the contig name and location at the start
 grep "$CONTIG" $ASSEMBLY.fai > $CONTIG.info.txt
 rm insertions_fwd_strand_$CONTIG.bed insertions_rev_strand_$CONTIG.bed
-zcat /gpfs01/home/mbzlld/photorhabdus_test_PK123_WITH_newcutadapt/biotradis/PK123_combined.out.$CONTIG.insert_site_plot.gz | awk '
-BEGIN {
-    while ((getline < "'$CONTIG.info.txt'") > 0) {
-        chr[++n] = $1
-        len[n] = $2
-    }
-    c = 1
+zcat /gpfs01/home/mbzlld/photorhabdus_test_PK123_WITH_newcutadapt/biotradis/PK123_combined.out.$CONTIG.insert_site_plot.gz |
+awk -v OFS='\t' '
+NR == FNR {
+    chr = $1
     pos = 0
+    next
 }
 {
-    print chr[c], pos, pos+1, $1 >> "'insertions_fwd_strand_$CONTIG.bed'"
-    print chr[c], pos, pos+1, $2 >> "'insertions_rev_strand_$CONTIG.bed'"
+    print chr, pos, pos+1, $1 >> "insertions_fwd_strand_'$CONTIG'.bed"
+    print chr, pos, pos+1, $2 >> "insertions_rev_strand_'$CONTIG'.bed"
     pos++
-    if (pos >= len[c]) {
-        c++
-        pos = 0
-    }
 }
-' OFS='\t'
+' "$CONTIG.info.txt" - OFS='\t'
 # make genome windows to count insertion sites in
-bedtools makewindows -g $CONTIG.info.txt -w 5000 > windows_5kb_$CONTIG.bed
+bedtools makewindows -g $CONTIG.info.txt -w ${window_size}000 > windows_${window_size}kb_$CONTIG.bed
 # count the insertions per window
-bedtools map -a windows_5kb_$CONTIG.bed -b insertions_fwd_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_fwd_strand_5kb_$CONTIG.bed
-bedtools map -a windows_5kb_$CONTIG.bed -b insertions_rev_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_rev_strand_5kb_$CONTIG.bed
+bedtools map -a windows_${window_size}kb_$CONTIG.bed -b insertions_fwd_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_fwd_strand_${window_size}kb_$CONTIG.bed
+bedtools map -a windows_${window_size}kb_$CONTIG.bed -b insertions_rev_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_rev_strand_${window_size}kb_$CONTIG.bed
 # cleanup
 rm $CONTIG.info.txt
 
@@ -243,7 +239,7 @@ padding = 8
 
 <plot>
 type = histogram
-file = insertions_fwd_strand_5kb_$CONTIG.bed
+file = insertions_fwd_strand_${window_size}kb_$CONTIG.bed
 r1   = 0.80r
 r0   = 0.55r
 color = vdred
@@ -253,7 +249,7 @@ thickness = 0.5
 
 <plot>
 type = histogram
-file = insertions_rev_strand_5kb_$CONTIG.bed
+file = insertions_rev_strand_${window_size}kb_$CONTIG.bed
 r1   = 0.55r
 r0   = 0.30r
 orientation = in
