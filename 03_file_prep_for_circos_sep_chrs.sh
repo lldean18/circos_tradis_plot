@@ -97,38 +97,6 @@ bedtools map -a windows_${window_size}kb_$CONTIG.bed -b insertions_rev_strand_$C
 # cleanup
 rm $CONTIG.info.txt
 
-##  ######################################
-##  # prev version
-##  # convert the tradis insertion site output to bed format
-##  rm insertions_fwd_strand.bed insertions_rev_strand.bed
-##  touch insertions_fwd_strand.bed insertions_rev_strand.bed
-##  zcat /gpfs01/home/mbzlld/photorhabdus_test_PK123_WITH_newcutadapt/biotradis/PK123_combined.out.$CONTIG.insert_site_plot.gz | awk '
-##  BEGIN {
-##      while ((getline < "'$ASSEMBLY.fai'") > 0) {
-##          chr[++n] = $1
-##          len[n] = $2
-##      }
-##      c = 1
-##      pos = 0
-##  }
-##  {
-##      print chr[c], pos, pos+1, $1 >> "'insertions_fwd_strand_$CONTIG.bed'"
-##      print chr[c], pos, pos+1, $2 >> "'insertions_rev_strand_$CONTIG.bed'"
-##      pos++
-##      if (pos >= len[c]) {
-##          c++
-##          pos = 0
-##      }
-##  }
-##  ' OFS='\t'
-##  
-##  # make genome windows to count insertion sites in
-##  bedtools makewindows -g $ASSEMBLY.fai -w 5000 > windows_5kb.bed
-##  
-##  # count the insertions per window
-##  bedtools map -a windows_5kb.bed -b insertions_fwd_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_fwd_strand_5kb_$CONTIG.bed
-##  bedtools map -a windows_5kb.bed -b insertions_rev_strand_$CONTIG.bed -c 4 -o sum -null 0 > insertions_rev_strand_5kb_$CONTIG.bed
-
 ##########################
 ### PREP THE ORIC FILE ###
 ##########################
@@ -143,6 +111,14 @@ awk 'match($1, "'$CONTIG'") && $3=="oriC" {
     print $1, midpoint, midpoint, "oriC"
 }' OFS="\t" "$ANNOTATION" > oriC_label_$CONTIG.txt
 done
+
+##############################
+# prep the contig label file #
+##############################
+
+cut -f1,2 $ASSEMBLY.fai | grep "$CONTIG" > tmp
+awk -v OFS='\t' -v contig="$CONTIG" '{print $1, int($2/4) -1, int($2/4) +1, contig}' tmp > ${CONTIG}_label.txt
+rm tmp
 
 #############################
 # PREP THE CIRCOS CONF FILE #
@@ -170,6 +146,7 @@ angle_offset      = -90
 #angle_orientation = counterclockwise
 auto_alpha_colors = yes
 auto_alpha_steps  = 5
+
 </image>
 
 karyotype = karyotype_$CONTIG.txt
@@ -198,6 +175,23 @@ color = black
 ########################################
 
 <plots>
+
+##############################
+# contig label in the centre #
+##############################
+
+<plot>
+type = text
+file = ${CONTIG}_label.txt
+r1 = 0.30r
+r0 = 0.01r
+label_size = 60
+label_font = bold
+color = black
+horizontal_align = left
+vertical_align = middle
+rpadding = -0.5r
+</plot>
 
 ########################
 # gene annotation ring
