@@ -88,7 +88,7 @@ NR == FNR {
     print chr, pos, pos+1, $2 >> "insertions_rev_strand_'$CONTIG'.bed"
     pos++
 }
-' "$CONTIG.info.txt" - OFS='\t'
+' "$CONTIG.info.txt" -
 # make genome windows to count insertion sites in
 bedtools makewindows -g $CONTIG.info.txt -w ${window_size}000 > windows_${window_size}kb_$CONTIG.bed
 # count the insertions per window
